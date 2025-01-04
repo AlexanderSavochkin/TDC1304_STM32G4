@@ -201,6 +201,38 @@ USBD_StatusTypeDef SendArrayOverCustomHIDUsb(uint16_t *data, uint16_t length) {
     return USBD_OK;
 }
 
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if(htim->Instance == TIM2)
+  {
+	  ++unused;
+
+    // Re-configure Tim1 TRGO to Updateevent
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
+
+	HAL_StatusTypeDef status = HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig);
+	if (status != HAL_OK)
+	{
+		// Handle error
+		Error_Handler();
+	}
+
+	// Disable interrupt for Tim2
+	HAL_TIM_Base_Stop_IT(&htim2);
+
+	//Looks like trigger starts timer
+	// TODO: Configure PWM without starting the timer
+	//HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+
+	// Start ADC conversion (also handles slave settings for tim4)
+	EnableADCConversion();
+  }
+}
+
+
 /* USER CODE END 0 */
 
 /**
