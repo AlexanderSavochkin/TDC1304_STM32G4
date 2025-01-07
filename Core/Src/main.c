@@ -158,6 +158,8 @@ static void EnableADCConversion(void)
         Error_Handler();
     }
 
+    // Since the timer is in slave mode, I expect this won't start generating PWM immediatelly
+    // Instead it will wait until master event and start PWM after
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 }
 
@@ -206,8 +208,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if(htim->Instance == TIM2)
   {
-	  ++unused;
-
     // Re-configure Tim1 TRGO to Updateevent
 	TIM_MasterConfigTypeDef sMasterConfig = {0};
 	sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
