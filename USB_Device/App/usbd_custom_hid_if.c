@@ -98,10 +98,10 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 	0x15, 0x00,        //   Logical Minimum (0)
 	0x26, 0xFF, 0x00,  //   Logical Maximum (255)
 	0x75, 0x08,        //   Report Size (8)
-	0x95, 0x40,        //   Report Count (64)
+	0x95, CUSTOM_HID_EPIN_SIZE,        //   Report Count (64)
 	0x09, 0x01,        //   Usage (0x01)
 	0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,...)
-	0x95, 0x40,        //   Report Count (64)
+	0x95, CUSTOM_HID_EPOUT_SIZE,        //   Report Count (64)
 	0x09, 0x01,        //   Usage (0x01)
 	0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,...)
 	/* USER CODE END 0 */
@@ -109,7 +109,8 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 };
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
-
+volatile int USB_RX_Ready;
+volatile uint8_t USB_RX_Buffer[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -185,11 +186,20 @@ static int8_t CUSTOM_HID_DeInit_FS(void)
   * @param  state: Event state
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
+static int8_t CUSTOM_HID_OutEvent_FS(uint8_t *buffer, uint32_t len)
 {
   /* USER CODE BEGIN 6 */
-  UNUSED(event_idx);
-  UNUSED(state);
+  if (USB_RX_Ready == 0)
+  {
+	  // Copy received data to a global buffer if needed
+	  for(uint32_t i = 0; i < len && i < USBD_CUSTOMHID_OUTREPORT_BUF_SIZE; i++)
+	  {
+		  USB_RX_Buffer[i] = buffer[i];
+	  }
+
+	  // Set flag to indicate new data is available
+	  USB_RX_Ready = 1;
+  }
 
   /* Start next USB packet transfer once data processing is completed */
   USBD_CUSTOM_HID_ReceivePacket(&hUsbDeviceFS);
