@@ -61,7 +61,6 @@ UART_HandleTypeDef huart2;
 volatile uint32_t ccd_read_buffer[CCD_ARRAY_SIZE];
 uint16_t uart_send_buffer[CCD_ARRAY_SIZE];
 volatile uint8_t conversionComplete = 0;
-volatile uint8_t readyForNextConversion = 1;
 
 /* USER CODE END PV */
 
