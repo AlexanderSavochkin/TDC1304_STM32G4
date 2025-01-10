@@ -60,8 +60,8 @@ UART_HandleTypeDef huart2;
 
 volatile uint32_t ccd_read_buffer[CCD_ARRAY_SIZE];
 uint16_t uart_send_buffer[CCD_ARRAY_SIZE];
-volatile uint8_t conversionComplete = 0;
-volatile uint8_t readyForNextConversion = 1;
+volatile uint8_t conversion_complete = 0;
+volatile uint8_t integratoin_time;
 
 /* USER CODE END PV */
 
@@ -87,7 +87,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   if(hadc->Instance == ADC2)
   {
-    conversionComplete = 1;
+    conversion_complete = 1;
 
     // Stop TIM4 after conversion complete and disable triggering it
 
@@ -166,29 +166,56 @@ static void EnableADCConversion(void)
 static uint8_t rolling_counter = 0;
 
 USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t length) {
-    uint8_t packet[HID_PACKET_SIZE];
-    uint16_t bytes_remaining = length * sizeof(uint16_t);
+    //uint8_t packet[HID_PACKET_SIZE];
+    OutDataMessage out_message;
+    InputCommandMessage* input_cmd_message = (InputCommandMessage*)USB_RX_Buffer;
+    uint16_t data_bytes_to_send_remaining = length * sizeof(uint16_t);
     uint8_t *data_ptr = (uint8_t*)data;
     uint8_t sequence = 0;
+    uint8_t same_data_resend_count = 0;
+    uint8_t chunk_index = 0;
 
     rolling_counter = (rolling_counter + 1) & 0x0F;
 
-    while (bytes_remaining > 0) {
-        packet[0] = ((rolling_counter << 4) & HEADER_ROLL_MASK) |
-                    (sequence & HEADER_SEQ_MASK);
+    while (data_bytes_to_send_remaining > 0 && same_data_resend_count < MAX_SAME_DATA_RESEND) {
+    	//See if there are any incoming commands (synchronize?)
+    	if (USB_RX_Ready == 1)
+    	{
+			USB_RX_Ready = 0;
+			switch (input_cmd_message->command)
+			{
+			case READ_PARTIAL_DATA_CHUNK:
+				puts("Received READ_PARTIAL_DATA_CHUNK\r\n");
+				//Extract requested chunk index
+				chunk_index = input_cmd_message->value & HEADER_SEQ_MASK;
+				same_data_resend_count = 0;
+				break;
+			case SET_INTEGRATION_TIME:
+				puts("Received SET_INTEGRATION_TIME\r\n");
+				break;
+			}
+    	}
 
-        uint16_t chunk_size = bytes_remaining > HID_PAYLOAD_SIZE ?
-                             HID_PAYLOAD_SIZE : bytes_remaining;
+    	if (chunk_index * DATA_CHUNK_SIZE > CCD_ARRAY_SIZE - 1)
+    	{
+    		return USBD_OK;
+    	}
 
-        memcpy(&packet[1], data_ptr, chunk_size);
+        out_message.seq_prefix = ((rolling_counter << 4) & HEADER_ROLL_MASK) |
+                (sequence & HEADER_SEQ_MASK);
 
-        if (chunk_size < HID_PAYLOAD_SIZE) {
-            memset(&packet[1 + chunk_size], 0, HID_PAYLOAD_SIZE - chunk_size);
+        uint16_t chunk_size = data_bytes_to_send_remaining > DATA_CHUNK_SIZE ?
+        		DATA_CHUNK_SIZE : data_bytes_to_send_remaining;
+
+        memcpy(out_message->data, data_ptr, chunk_size);
+
+        if (chunk_size < DATA_CHUNK_SIZE) {
+            memset(&(out_message.data[1 + chunk_size]), 0, DATA_CHUNK_SIZE - chunk_size);
         }
 
         USBD_StatusTypeDef status = USBD_BUSY;
         for (int retry = 0; retry < MAX_USB_RETRIES && status != USBD_OK; retry++) {
-            status = USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, packet, HID_PACKET_SIZE);
+            status = USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &out_message, HID_PACKET_SIZE);
         }
 
         if (status != USBD_OK) {
@@ -196,8 +223,10 @@ USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t lengt
         }
 
         data_ptr += chunk_size;
-        bytes_remaining -= chunk_size;
+        data_bytes_to_send_remaining -= chunk_size;
         sequence = (sequence + 1) & HEADER_SEQ_MASK;
+
+        ++same_data_resend_count;
     }
 
     return USBD_OK;
@@ -292,7 +321,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if (conversionComplete)
+	if (conversion_complete)
 	{
 	  puts("Conversion batch completed!");
 
@@ -316,7 +345,7 @@ int main(void)
 	  else
 		  puts("Successfully sent the data over USB");
 
-	  conversionComplete = 0;
+	  conversion_complete = 0;
 
 	  // Enable next ADC conversion (will start on next timer event)
 	  puts("Re-enabling ADC conversion");

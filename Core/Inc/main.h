@@ -37,6 +37,22 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+#define DATA_CHUNK_SIZE 62
+
+struct __attribute__((packed)) OutDataMessage
+{
+	uint8_t seq_prefix;
+	uint8_t shutter;
+	uint8_t data[DATA_CHUNK_SIZE];
+};
+
+struct __attribute__((packed)) InputCommandMessage
+{
+	uint8_t command;
+	uint8_t value;
+};
+
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
