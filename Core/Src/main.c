@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
+#include "usbd_customhid.h"
+#include "usbd_custom_hid_if.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -38,6 +40,7 @@
 #define HEADER_SEQ_MASK 0x0F
 #define HEADER_ROLL_MASK 0xF0
 #define MAX_USB_RETRIES 3
+#define MAX_SAME_DATA_RESEND 100
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -167,8 +170,8 @@ static uint8_t rolling_counter = 0;
 
 USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t length) {
     //uint8_t packet[HID_PACKET_SIZE];
-    OutDataMessage out_message;
-    InputCommandMessage* input_cmd_message = (InputCommandMessage*)USB_RX_Buffer;
+    struct OutDataMessage out_message;
+    struct InputCommandMessage* input_cmd_message = (struct InputCommandMessage*)USB_RX_Buffer;
     uint16_t data_bytes_to_send_remaining = length * sizeof(uint16_t);
     uint8_t *data_ptr = (uint8_t*)data;
     uint8_t sequence = 0;
@@ -207,7 +210,11 @@ USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t lengt
         uint16_t chunk_size = data_bytes_to_send_remaining > DATA_CHUNK_SIZE ?
         		DATA_CHUNK_SIZE : data_bytes_to_send_remaining;
 
-        memcpy(out_message->data, data_ptr, chunk_size);
+        memcpy(
+        		out_message.data,
+				data_ptr + chunk_index * DATA_CHUNK_SIZE,
+				chunk_size
+		);
 
         if (chunk_size < DATA_CHUNK_SIZE) {
             memset(&(out_message.data[1 + chunk_size]), 0, DATA_CHUNK_SIZE - chunk_size);

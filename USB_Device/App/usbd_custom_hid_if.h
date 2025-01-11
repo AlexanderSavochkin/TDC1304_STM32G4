@@ -94,8 +94,8 @@
 extern USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
-extern int USB_RX_Ready;
-extern uint8_t USB_RX_Buffer[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
+extern volatile int USB_RX_Ready;
+extern volatile uint8_t USB_RX_Buffer[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
