@@ -172,7 +172,18 @@ USBD_StatusTypeDef SendArrayOverCustomHIDUsb(uint16_t *data, uint16_t length) {
 
     rolling_counter = (rolling_counter + 1) & 0x0F;
 
-    while (bytes_remaining > 0) {
+    /*
+     *  uint32_t ceiling_division_unsigned(uint32_t numerator, uint32_t denominator) {
+     *    return (numerator + denominator - 1) / denominator;
+	 *	}
+     */
+    const uint8_t number_of_chunks_to_send = (CCD_ARRAY_SIZE + DATA_CHUNK_SIZE_SAMPLES - 1) / DATA_CHUNK_SIZE_SAMPLES;
+
+    for (int data_chunk_index = 0;
+         data_chunk_index < number_of_chunks_to_send;
+         ++data_chunk_index)
+    {
+
         packet[0] = ((rolling_counter << 4) & HEADER_ROLL_MASK) |
                     (sequence & HEADER_SEQ_MASK);
 
