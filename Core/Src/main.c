@@ -164,7 +164,7 @@ static void EnableADCConversion(void)
 
 static uint8_t rolling_counter = 0;
 
-USBD_StatusTypeDef SendArrayOverCustomHIDUsb(uint16_t *data, uint16_t length) {
+USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t length) {
     uint8_t packet[HID_PACKET_SIZE];
     uint16_t bytes_remaining = length * sizeof(uint16_t);
     uint8_t *data_ptr = (uint8_t*)data;
@@ -319,7 +319,7 @@ int main(void)
 			  (CCD_ARRAY_SIZE + 1) * sizeof(uint16_t),
 			  HAL_MAX_DELAY);
 	  */
-	  USBD_StatusTypeDef send_result = SendArrayOverCustomHIDUsb(uart_send_buffer, CCD_ARRAY_SIZE);
+	  USBD_StatusTypeDef send_result = UsbDataAndCommandsExchangeLoop(uart_send_buffer, CCD_ARRAY_SIZE);
 
 	  if (send_result != USBD_OK)
 		  puts("Error while sending the data over USB");
