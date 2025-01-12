@@ -59,7 +59,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 volatile uint32_t ccd_read_buffer[CCD_ARRAY_SIZE];
-uint16_t uart_send_buffer[CCD_ARRAY_SIZE];
+uint16_t data_buffer_to_send[CCD_ARRAY_SIZE];
 volatile uint8_t conversionComplete = 0;
 
 /* USER CODE END PV */
@@ -165,6 +165,9 @@ static void EnableADCConversion(void)
 static uint8_t rolling_counter = 0;
 
 USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t length) {
+    struct OutDataMessage out_message;
+    //struct InputCommandMessage* input_cmd_message = (struct InputCommandMessage*)USB_RX_Buffer;
+
     uint8_t packet[HID_PACKET_SIZE];
     uint16_t bytes_remaining = length * sizeof(uint16_t);
     uint8_t *data_ptr = (uint8_t*)data;
@@ -183,17 +186,24 @@ USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t lengt
          data_chunk_index < number_of_chunks_to_send;
          ++data_chunk_index)
     {
+        out_message.seq_prefix = data_chunk_index;
+        out_message.shutter = 0xBF;
 
-        packet[0] = ((rolling_counter << 4) & HEADER_ROLL_MASK) |
-                    (sequence & HEADER_SEQ_MASK);
+        uint16_t chunk_size_samples = data_chunk_index == number_of_chunks_to_send - 1 ?
+            CCD_ARRAY_SIZE % DATA_CHUNK_SIZE_SAMPLES : DATA_CHUNK_SIZE_SAMPLES;
 
-        uint16_t chunk_size = bytes_remaining > HID_PAYLOAD_SIZE ?
-                             HID_PAYLOAD_SIZE : bytes_remaining;
+        memcpy(
+            out_message.data,
+			&data[data_chunk_index * DATA_CHUNK_SIZE_SAMPLES],
+			chunk_size_samples * sizeof(uint16_t)
+		);
 
-        memcpy(&packet[1], data_ptr, chunk_size);
-
-        if (chunk_size < HID_PAYLOAD_SIZE) {
-            memset(&packet[1 + chunk_size], 0, HID_PAYLOAD_SIZE - chunk_size);
+        if (chunk_size_samples < DATA_CHUNK_SIZE_SAMPLES) {
+            memset(
+                &out_message.data[1 + chunk_size_samples * 2],
+				0,
+				DATA_CHUNK_SIZE_SAMPLES - chunk_size_samples
+			);
         }
 
         USBD_StatusTypeDef status = USBD_BUSY;
@@ -205,8 +215,6 @@ USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t lengt
             return status; // Transmission failed after max retries
         }
 
-        data_ptr += chunk_size;
-        bytes_remaining -= chunk_size;
         sequence = (sequence + 1) & HEADER_SEQ_MASK;
     }
 
@@ -308,7 +316,7 @@ int main(void)
 
 	  // Copy data from ccd_read_buffer to uart_send_buffer
 	  for (int i = 0; i < CCD_ARRAY_SIZE; ++i) {
-		  uart_send_buffer[i] = (uint16_t)ccd_read_buffer[i];
+		  data_buffer_to_send[i] = (uint16_t)ccd_read_buffer[i];
 	  }
 
 	  /*
@@ -319,7 +327,7 @@ int main(void)
 			  (CCD_ARRAY_SIZE + 1) * sizeof(uint16_t),
 			  HAL_MAX_DELAY);
 	  */
-	  USBD_StatusTypeDef send_result = UsbDataAndCommandsExchangeLoop(uart_send_buffer, CCD_ARRAY_SIZE);
+	  USBD_StatusTypeDef send_result = UsbDataAndCommandsExchangeLoop(data_buffer_to_send, CCD_ARRAY_SIZE);
 
 	  if (send_result != USBD_OK)
 		  puts("Error while sending the data over USB");
