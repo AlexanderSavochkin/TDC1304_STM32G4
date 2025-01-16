@@ -168,11 +168,6 @@ USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t lengt
     struct OutDataMessage out_message;
     //struct InputCommandMessage* input_cmd_message = (struct InputCommandMessage*)USB_RX_Buffer;
 
-    uint8_t packet[HID_PACKET_SIZE];
-    uint16_t bytes_remaining = length * sizeof(uint16_t);
-    uint8_t *data_ptr = (uint8_t*)data;
-    uint8_t sequence = 0;
-
     rolling_counter = (rolling_counter + 1) & 0x0F;
 
     /*
@@ -182,7 +177,7 @@ USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t lengt
      */
     const uint8_t number_of_chunks_to_send = (CCD_ARRAY_SIZE + DATA_CHUNK_SIZE_SAMPLES - 1) / DATA_CHUNK_SIZE_SAMPLES;
 
-    for (int data_chunk_index = 0;
+    for (uint8_t data_chunk_index = 0;
          data_chunk_index < number_of_chunks_to_send;
          ++data_chunk_index)
     {
@@ -200,22 +195,22 @@ USBD_StatusTypeDef UsbDataAndCommandsExchangeLoop(uint16_t *data, uint16_t lengt
 
         if (chunk_size_samples < DATA_CHUNK_SIZE_SAMPLES) {
             memset(
-                &out_message.data[1 + chunk_size_samples * 2],
+                &out_message.data[1 + chunk_size_samples * sizeof(uint16_t)],
 				0,
 				DATA_CHUNK_SIZE_SAMPLES - chunk_size_samples
 			);
         }
 
-        USBD_StatusTypeDef status = USBD_BUSY;
-        for (int retry = 0; retry < MAX_USB_RETRIES && status != USBD_OK; retry++) {
-            status = USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, packet, HID_PACKET_SIZE);
+        uint8_t status = (int8_t)USBD_BUSY;
+        puts("Attempting to send the data over USB\r");
+        for (int retry = 0; (retry < MAX_USB_RETRIES) && (status != (uint8_t)USBD_OK); retry++) {
+            status = USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &out_message, HID_PACKET_SIZE);
+            printf("HID send attempt: %d, USB status = %d\n\r", (int)retry, (int)status);
         }
 
         if (status != USBD_OK) {
             return status; // Transmission failed after max retries
         }
-
-        sequence = (sequence + 1) & HEADER_SEQ_MASK;
     }
 
     return USBD_OK;
