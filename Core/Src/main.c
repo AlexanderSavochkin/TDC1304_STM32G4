@@ -32,7 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CCD_ARRAY_SIZE 3072
+#define CCD_ARRAY_SIZE 3648
 #define HID_PACKET_SIZE 64  // Standard HID packet size
 #define HID_PAYLOAD_SIZE (HID_PACKET_SIZE - 1)  // 63 bytes for payload
 #define HEADER_SEQ_MASK 0x0F
