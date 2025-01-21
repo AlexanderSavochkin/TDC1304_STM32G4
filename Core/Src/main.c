@@ -60,7 +60,7 @@ UART_HandleTypeDef huart2;
 
 volatile uint32_t ccd_read_buffer[CCD_ARRAY_SIZE];
 uint16_t data_buffer_to_send[CCD_ARRAY_SIZE];
-volatile uint8_t conversionComplete = 0;
+volatile uint8_t conversion_complete = 0;
 
 /* USER CODE END PV */
 
@@ -86,7 +86,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   if(hadc->Instance == ADC2)
   {
-    conversionComplete = 1;
+    conversion_complete = 1;
 
     // Stop TIM4 after conversion complete and disable triggering it
 
@@ -305,7 +305,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if (conversionComplete)
+	if (conversion_complete)
 	{
 	  puts("Conversion batch completed!");
 
@@ -329,7 +329,7 @@ int main(void)
 	  else
 		  puts("Successfully sent the data over USB");
 
-	  conversionComplete = 0;
+	  conversion_complete = 0;
 
 	  // Enable next ADC conversion (will start on next timer event)
 	  puts("Re-enabling ADC conversion");
@@ -418,7 +418,7 @@ static void MX_ADC2_Init(void)
   hadc2.Init.DiscontinuousConvMode = DISABLE;
   hadc2.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T4_TRGO;
   hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-  hadc2.Init.DMAContinuousRequests = DISABLE;
+  hadc2.Init.DMAContinuousRequests = ENABLE;
   hadc2.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc2.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc2) != HAL_OK)
@@ -492,7 +492,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 33;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;

@@ -1,8 +1,9 @@
 #MicroXplorer Configuration settings - do not modify
 ADC2.Channel-0\#ChannelRegularConversion=ADC_CHANNEL_2
 ADC2.CommonPathInternal=null|null|null|null
+ADC2.DMAContinuousRequests=ENABLE
 ADC2.ExternalTrigConv=ADC_EXTERNALTRIG_T4_TRGO
-ADC2.IPParameters=Rank-0\#ChannelRegularConversion,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,OffsetNumber-0\#ChannelRegularConversion,NbrOfConversionFlag,ExternalTrigConv,CommonPathInternal
+ADC2.IPParameters=Rank-0\#ChannelRegularConversion,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,OffsetNumber-0\#ChannelRegularConversion,NbrOfConversionFlag,ExternalTrigConv,DMAContinuousRequests,CommonPathInternal
 ADC2.NbrOfConversionFlag=1
 ADC2.OffsetNumber-0\#ChannelRegularConversion=ADC_OFFSET_NONE
 ADC2.Rank-0\#ChannelRegularConversion=1
@@ -199,10 +200,11 @@ SH.S_TIM3_CH2.ConfNb=1
 SH.S_TIM4_CH1.0=TIM4_CH1,PWM Generation1 CH1
 SH.S_TIM4_CH1.ConfNb=1
 TIM1.Channel-PWM\ Generation1\ CH1=TIM_CHANNEL_1
-TIM1.IPParameters=Channel-PWM Generation1 CH1,Prescaler,PeriodNoDither,TIM_MasterOutputTrigger,TIM_MasterOutputTrigger2,OCPolarity_1
+TIM1.IPParameters=Channel-PWM Generation1 CH1,Prescaler,PeriodNoDither,TIM_MasterOutputTrigger,TIM_MasterOutputTrigger2,OCPolarity_1,PulseNoDither_1
 TIM1.OCPolarity_1=TIM_OCPOLARITY_LOW
 TIM1.PeriodNoDither=25499
 TIM1.Prescaler=49
+TIM1.PulseNoDither_1=33
 TIM1.TIM_MasterOutputTrigger=TIM_TRGO_ENABLE
 TIM1.TIM_MasterOutputTrigger2=TIM_TRGO2_ENABLE
 TIM2.Channel-PWM\ Generation1\ CH1=TIM_CHANNEL_1
