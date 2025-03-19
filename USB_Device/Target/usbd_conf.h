@@ -34,7 +34,10 @@
 #include "stm32g4xx_hal.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#undef CUSTOM_HID_EPIN_SIZE
+#undef CUSTOM_HID_EPOUT_SIZE
+#define CUSTOM_HID_EPIN_SIZE 0x40U
+#define CUSTOM_HID_EPOUT_SIZE 0x2U
 /* USER CODE END INCLUDE */
 
 /** @addtogroup USBD_OTG_DRIVER
@@ -79,7 +82,7 @@
 /*---------- -----------*/
 #define USBD_CUSTOMHID_OUTREPORT_BUF_SIZE     2U
 /*---------- -----------*/
-#define USBD_CUSTOM_HID_REPORT_DESC_SIZE     27U // manually changed from 2U
+#define USBD_CUSTOM_HID_REPORT_DESC_SIZE     27U
 /*---------- -----------*/
 #define CUSTOM_HID_FS_BINTERVAL     0x5U
 

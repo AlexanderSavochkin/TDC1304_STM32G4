@@ -245,6 +245,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 }
 
+/*
+void VREFBUF_Init(void)
+{
+    // Enable VREFBUF clock
+    //__HAL_RCC_VREFBUF_CLK_ENABLE();
+	RCC->APB1ENR1 |= RCC_APB1ENR1_VREFBUFCKEN;
+
+    // Configure VREFBUF
+    VREFBUF->CSR |= VREFBUF_CSR_ENVR;  // Enable VREFBUF
+    VREFBUF->CSR &= ~VREFBUF_CSR_HIZ;  // Disable high impedance mode
+    VREFBUF->CSR |= VREFBUF_CSR_VRS_1;   // Set voltage scale (e.g., 2.5V)
+
+    // Wait for VREFBUF to stabilize
+    while(!(VREFBUF->CSR & VREFBUF_CSR_VRR));
+}
+
+*/
 
 /* USER CODE END 0 */
 
@@ -272,7 +289,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  //VREFBUF_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */

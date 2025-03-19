@@ -88,10 +88,9 @@
   */
 
 /** Usb HID report descriptor. */
-/*manually entered*/
 __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DESC_SIZE] __ALIGN_END =
 {
-	/* USER CODE BEGIN 0 */
+  /* USER CODE BEGIN 0 */
 	0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
 	0x09, 0x01,        // Usage (0x01)
 	0xA1, 0x01,        // Collection (Application)
@@ -104,8 +103,8 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 	0x95, 0x40,        //   Report Count (64)
 	0x09, 0x01,        //   Usage (0x01)
 	0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,...)
-	/* USER CODE END 0 */
-	0xC0    /*     END_COLLECTION	             */
+  /* USER CODE END 0 */
+  0xC0    /*     END_COLLECTION	             */
 };
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
