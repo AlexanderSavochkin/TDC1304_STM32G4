@@ -1,0 +1,31 @@
+# STM32CubeIDE generated files and folders
+*.launch
+*.log
+*.bin
+*.elf
+*.hex
+*.map
+*.o
+*.d
+*.lst
+
+# Build output directories
+/Debug/
+/Release/
+
+# IDE settings (user/machine-specific)
+.settings/
+.metadata/
+.ipch/
+.cproject
+.project
+
+# Backup and temporary files
+*~
+*.swp
+*.bak
+*.tmp
+
+# OS generated files
+.DS_Store
+Thumbs.db
