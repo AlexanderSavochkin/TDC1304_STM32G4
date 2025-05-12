@@ -27,6 +27,9 @@ The custom board drives a TCD1304 CCD sensor and reads analog data via ADC + DMA
 ## Repository Structure
 
 firmware/VCP/ # STM32 firmware using USB CDC (Virtual COM Port)
+
 firmware/HID/ # STM32 firmware using USB HID protocol
+
 host/VCP/tdcserial.py  # Python script for VCP communication
+
 host/HID/tdchid.py # Python script for HID communication
